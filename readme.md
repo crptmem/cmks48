@@ -4,7 +4,7 @@
 <img src="https://img.shields.io/github/stars/NeticTeam/AirKernel.svg"/>
 <img src="https://img.shields.io/github/issues/NeticTeam/AirKernel.svg"/>
 <img src="https://github.com/NeticTeam/AirKernel/actions/workflows/build.yml/badge.svg"/>
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/fd5a7833d434455e8c455fce709f0b78)](https://www.codacy.com/gh/NeticTeam/AirKernel/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=NeticTeam/AirKernel&amp;utm_campaign=Badge_Grade)
+<img src="https://app.codacy.com/project/badge/Grade/fd5a7833d434455e8c455fce709f0b78"/>
 </p>
   <h3 align="center">AirKernel</h3>
   <p align="center">
