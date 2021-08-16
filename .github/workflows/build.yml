@@ -1,0 +1,27 @@
+name: Test kernel build
+
+on: [ push, pull_request, release ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install mtools
+      run: sudo apt-get install mtools
+    - name: Build bootloader
+      run: make bootloader
+    - name: Build kernel
+      run: make -C ./kernel
+    - name: Build image
+      run: make -C ./kernel buildimg
+    - name: Upload kernel.elf
+      uses: actions/upload-artifact@v2
+      with:
+        name: kernel.elf
+        path: kernel/bin/kernel.elf
+    - name: Upload CustomOS.img
+      uses: actions/upload-artifact@v2
+      with:
+        name: CustomOS.img
+        path: kernel/bin/CustomOS.img
