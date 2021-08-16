@@ -156,7 +156,7 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 		header.e_version != EV_CURRENT
 	)
 	{
-		Print(L"  Kernel executable is corrupted.\r\n");
+		Print(L"  Kernel executable is corruptedmemory.\r\n");
 	}
 	else
 	{
