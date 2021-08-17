@@ -20,11 +20,18 @@ void mm_init(uint32_t kernel_end)
 	pheap_end = 0x400000;
 	pheap_begin = pheap_end - (MAX_PAGE_ALIGNED_ALLOCS * 4096);
 	heap_end = pheap_begin;
-    pheap_desc = (uint8_t *)malloc(MAX_PAGE_ALIGNED_ALLOCS);
-    newline();
-    kprint("Kernel last_alloc: ", 0xFFFFFF);
+        pheap_desc = (uint8_t *)malloc(MAX_PAGE_ALIGNED_ALLOCS);
+        newline();
+        kprint("Kernel last_alloc: ", 0xFFFFFF);
 	kprint(to_hstring32(last_alloc), 0xFFFFFF);
-    newline();
+        newline();
+}
+
+void free(void *mem)
+{
+	alloc_t *alloc = (mem - sizeof(alloc_t));
+	memory_used -= alloc->size + sizeof(alloc_t);
+	alloc->status = 0;
 }
 
 char* malloc(size_t size)
