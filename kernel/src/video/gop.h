@@ -1,5 +1,5 @@
 #pragma once
-#include <lib/types.h>
+#include <lib/stdlib.h>
 typedef struct {
 	void* BaseAddress;
 	size_t BufferSize;
@@ -27,6 +27,11 @@ typedef struct {
 extern Point CursorPosition;
 extern void Print(Framebuffer* framebuffer, PSF1_FONT* psf1_font, unsigned int colour, char* str);
 extern void Clear();
-extern void kprint(char* str[], unsigned int color,  const char* caller);
+extern void kprint(char* str[], unsigned int color);
 extern void newline();
 extern void PutChar(char* chr, unsigned int colour, unsigned int x, unsigned int y);
+extern const char* to_string(uint64_t value);
+extern const char* to_hstring64(uint64_t value);
+extern const char* to_hstring32(uint32_t value);
+extern const char* to_hstring16(uint16_t value);
+extern const char* to_hstring8(uint8_t value);

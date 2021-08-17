@@ -1,5 +1,5 @@
 #include <debug/stack.h>
-
+#include <video/gop.h>
 uint64_t make64(uint32_t high, uint32_t low) {
     return (uint64_t) high << 32 | low;
 }
@@ -48,4 +48,16 @@ registers* dump_registers() {
     if(reg->flags & (1 << 11)) return; // Overflow
 
     return reg;
+}
+
+void StackTrace(registers* regs){
+    newline();
+    kprint("EAX32: 0x", 0xFFFFFF);
+    kprint(to_hstring32(regs->eax32), 0xFFFFFF);
+    kprint(" EBX32: 0x", 0xFFFFFF);
+    kprint(to_hstring32(regs->ebx32), 0xFFFFFF);
+    kprint(" ECX32: 0x", 0xFFFFFF);
+    kprint(to_hstring32(regs->ecx32), 0xFFFFFF);
+    kprint(" EDX32: 0x", 0xFFFFFF);
+    kprint(to_hstring32(regs->edx32), 0xFFFFFF);
 }

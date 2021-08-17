@@ -13,3 +13,4 @@ typedef struct _registers {
 } registers;
 
 extern registers* dump_registers();
+extern void StackTrace(registers* regs);

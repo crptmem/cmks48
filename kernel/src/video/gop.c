@@ -1,5 +1,8 @@
 #include <video/gop.h>
 #include <lib/stdlib.h>
+#include <stdarg.h>
+#include <limits.h>
+
 Framebuffer* fb;
 PSF1_FONT* font;
 void putChar(Framebuffer* framebuffer, PSF1_FONT* psf1_font, unsigned int colour, char chr, unsigned int xOff, unsigned int yOff)
@@ -59,7 +62,7 @@ void newline(){
     CursorPosition.Y += 16;
 }
 
-void kprint(char* str[], unsigned int color, const char* caller){
+void kprint(char* str[], unsigned int color){
     Print(fb,font, color, str);
 }
 

@@ -1,3 +1,9 @@
+/*
+* Filename: stdlib.h
+* Author: corruptmemory (zmemory)
+* Description: Combines all lib files to one header
+*/
+
 #include "types.h"
 
 extern char *strcpy(char *dst, const char *src);
