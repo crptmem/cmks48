@@ -36,7 +36,7 @@ void Print(Framebuffer* framebuffer, PSF1_FONT* psf1_font, unsigned int colour, 
         if(CursorPosition.X + 8 > framebuffer->Width)
         {
             CursorPosition.X = 0;
-            CursorPosition.Y += 16;
+            CursorPosition.Y += 18;
         }
         chr++;
     }

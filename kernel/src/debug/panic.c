@@ -3,7 +3,7 @@
 void panic(const char* message, registers* regs){
     newline();
     kprint("--[ Kernel panic: ", 0xFFFFFF);
-    kprint( message, 0xFFFFFF);
+    kprint(message, 0xFFFFFF);
     kprint(" --]", 0xFFFFFF);
     newline();
     kprint("Context: ", 0xFFFFFF);

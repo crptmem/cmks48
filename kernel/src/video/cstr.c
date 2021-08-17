@@ -1,5 +1,5 @@
 #include <lib/stdlib.h>
-
+typedef signed long long int int64;
 char uintTo_StringOutput[128];
 const char* to_string64(uint64_t value){
     uint8_t size;
@@ -89,3 +89,4 @@ const char* to_hstring8(uint8_t value){
     hexTo_StringOutput8[size + 1] = 0;
     return hexTo_StringOutput8;
 }
+

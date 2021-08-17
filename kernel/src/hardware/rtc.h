@@ -32,7 +32,7 @@ char * get_current_datetime_str();
 int get_weekday_from_date(datetime_t * dt);
 
 int is_leap_year(int year, int month);
-
+extern datetime_t current_datetime;
 void rtc_init();
 
 #endif
