@@ -16,4 +16,5 @@ void panic(const char* message, registers* regs){
     kprint(to_hstring32(regs->ecx32), 0xFFFFFF);
     kprint("  EDX32: 0x", 0xFFFFFF);
     kprint(to_hstring32(regs->edx32), 0xFFFFFF);
+    for(;;);
 }

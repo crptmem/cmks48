@@ -2,7 +2,8 @@
 #include <video/gop.h>
 #include <string.h>
 #include <memory/heap.h>
-
+#include <debug/panic.h>
+#include <debug/stack.h>
 #define MAX_PAGE_ALIGNED_ALLOCS 32
 
 uint32_t last_alloc = 0;
@@ -12,14 +13,13 @@ uint32_t pheap_begin = 0;
 uint32_t pheap_end = 0;
 uint8_t *pheap_desc = 0;
 uint32_t memory_used = 0;
-
+void *kerneld;
 void* memset(void* bufptr, int value, size_t size) {
 	unsigned char* buf = (unsigned char*) bufptr;
 	for (size_t i = 0; i < size; i++)
 		buf[i] = (unsigned char) value;
 	return bufptr;
 }
-
 void mm_init(uint32_t kernel_end)
 {
 	last_alloc = kernel_end + 0x1000;
@@ -27,11 +27,9 @@ void mm_init(uint32_t kernel_end)
 	pheap_end = 0x400000;
 	pheap_begin = pheap_end - (MAX_PAGE_ALIGNED_ALLOCS * 4096);
 	heap_end = pheap_begin;
-        pheap_desc = (uint8_t *)malloc(MAX_PAGE_ALIGNED_ALLOCS);
-        newline();
-        kprint("Kernel last_alloc: ", 0xFFFFFF);
+    pheap_desc = (uint8_t *)malloc(MAX_PAGE_ALIGNED_ALLOCS);
+    kprint("[heap] last_alloc: ", 0xFFFFFF);
 	kprint(to_hstring32(last_alloc), 0xFFFFFF);
-        newline();
 }
 
 void free(void *mem)
@@ -70,6 +68,7 @@ char* malloc(size_t size)
 	}
 
 	nalloc:;
+
 	alloc_t *alloc = (alloc_t *)last_alloc;
 	alloc->status = 1;
 	alloc->size = size;
@@ -77,12 +76,6 @@ char* malloc(size_t size)
 	last_alloc += size;
 	last_alloc += sizeof(alloc_t);
 	last_alloc += 4;
-   	kprint("Allocated ", 0xFFFFFF);
-   	kprint(to_string64(size), 0xFFFFFF);
-   	kprint(" bytes from 0x", 0xFFFFFF);
-   	kprint(to_hstring32((uint32_t)alloc + sizeof(alloc_t)), 0xFFFFFF);
-   	kprint(" to 0x", 0xFFFFFF);
-   	kprint(to_hstring32(last_alloc), 0xFFFFFF);
 	memory_used += size + 4 + sizeof(alloc_t);
 	memset((char *)((uint32_t)alloc + sizeof(alloc_t)), 0, size);
 	return (char *)((uint32_t)alloc + sizeof(alloc_t));

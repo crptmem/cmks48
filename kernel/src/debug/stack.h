@@ -1,3 +1,4 @@
+#pragma once
 #include <lib/stdlib.h>
 
 typedef struct _registers {
