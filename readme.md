@@ -37,10 +37,6 @@ make
 make run
 ```
 
-## Problems
-### The 2100 year problem
-At this time we using strcat(ret, "20"); in rtc.c, so current year (2021, but dt->year returns 21) will be 2021. But on January 1 2100 outputted time will be like Jun 1 2000.
-
 ## 📚 Credits
 Kernel Base: [PonchoOS](https://github.com/absurdponcho/ponchoos)
 
