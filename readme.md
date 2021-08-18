@@ -18,9 +18,9 @@
 
 ## 📲 Download
 ### Kernel
-You can download latest release [here](https://github.com/NeticTeam/AirKernel/actions)<br/>
+You can download latest release [here](https://github.com/NeticTeam/AirKernel/releases)<br/>
 Or you can download latest Actions build from [here](https://github.com/NeticTeam/AirKernel/actions)<br/>
-Be sure that it's "dev" not "stable" one, as all really stable versions sould be in releases.<br/>
+Be sure that it's "dev" not "stable" one, as all really stable versions should be in releases.<br/>
 ### OS
 There's no OS option available for now, beacuse kernel is incomplete.
 
@@ -53,3 +53,4 @@ Tutorials: [OSDev](https://wiki.osdev.org)
 Leader: [z3r0memory](https://github.com/z3r0memory)
 
 Maintainer: [TheAirBlow](https://github.com/theairblow)
+
