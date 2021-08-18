@@ -16,7 +16,7 @@
   </p>
 <br/>
 
-## Download
+## 📲 Download
 ### Kernel
 You can download latest release [here](https://github.com/NeticTeam/AirKernel/actions)<br/>
 Or you can download latest Actions build from [here](https://github.com/NeticTeam/AirKernel/actions)<br/>
