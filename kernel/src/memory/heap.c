@@ -13,6 +13,13 @@ uint32_t pheap_end = 0;
 uint8_t *pheap_desc = 0;
 uint32_t memory_used = 0;
 
+void* memset(void* bufptr, int value, size_t size) {
+	unsigned char* buf = (unsigned char*) bufptr;
+	for (size_t i = 0; i < size; i++)
+		buf[i] = (unsigned char) value;
+	return bufptr;
+}
+
 void mm_init(uint32_t kernel_end)
 {
 	last_alloc = kernel_end + 0x1000;
