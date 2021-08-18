@@ -8,7 +8,7 @@
 </p>
   <h3 align="center">AirKernel</h3>
   <p align="center">
-  ⚡ Kernel written for NeticOS (UEFI bootloader)
+  ⚡ AirKernel is an UNIX-like kernel (UEFI bootloader)
   <br/>
   <a href="https://github.com/NeticTeam/AirKernel/issues/new?labels=bug">Report bug</a>
   |
@@ -16,6 +16,13 @@
   </p>
 <br/>
 
+## Download
+### Kernel
+You can download latest release [here](https://github.com/NeticTeam/AirKernel/actions)<br/>
+Or you can download latest Actions build from [here](https://github.com/NeticTeam/AirKernel/actions)<br/>
+Be sure that it's "dev" not "stable" one, as all really stable versions sould be in releases.<br/>
+### OS
+There's no OS option available for now, beacuse kernel is incomplete.
 
 ## ❗️ Requirements
 ### Debian/Debian-based
