@@ -33,6 +33,8 @@ const char* GetVendorName(uint16_t vendorID){
             return "AMD";
         case 0x10DE:
             return "NVIDIA Corporation";
+        case 0x1234:
+            return "QEMU Emulator";
     }
     return to_hstring16(vendorID);
 }
