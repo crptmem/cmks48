@@ -1,0 +1,18 @@
+[package]
+name = "cmks"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+bootloader = "0.11.6"
+kernel = { path = "kernel", artifact = "bin", target = "x86_64-unknown-none" }
+
+[dependencies]
+bootloader = "0.11.6"
+lazy_static = { version = "1.4.0", features = ["spin_no_std"], default-features = false }
+ovmf-prebuilt = "0.1.0-alpha.1"
+spin = "0.9.8"
+x86_64 = "0.14.11"
+
+[workspace]
+members = ["kernel"]

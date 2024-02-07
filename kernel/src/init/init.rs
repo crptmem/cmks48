@@ -1,0 +1,43 @@
+extern crate lazy_static;
+
+use core::ptr;
+
+use crate::drivers::pci;
+use crate::init::ramdisk::{self, read_ramdisk};
+use crate::{mm, serial_println, video};
+use crate::common::x86::{gdt, idt, memory, serial};
+use x86_64::{structures::paging::OffsetPageTable, VirtAddr};
+use crate::common::x86::acpi;
+
+pub static mut MAPPER: Option<OffsetPageTable<'static>> = None;
+pub static mut FRAME_ALLOCATOR: Option<memory::BootInfoFrameAllocator> = None;
+
+pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
+    let rsdp_addr: u64 = *boot_info.rsdp_addr.as_ref().unwrap();
+    let phys_mem_offset = *boot_info.physical_memory_offset.as_ref().unwrap();
+    let phys_mem_virtaddr = VirtAddr::new(phys_mem_offset);
+    let ramdisk_addr = boot_info.ramdisk_addr.as_ref().unwrap();
+    let ramdisk_size = boot_info.ramdisk_len as usize;
+    let mut mapper = unsafe { memory::init(phys_mem_virtaddr) };
+    let mut frame_allocator = unsafe { memory::BootInfoFrameAllocator::init(&boot_info.memory_regions) };
+
+    mm::allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
+    
+    gdt::init();    
+    idt::init();
+    unsafe { idt::PICS.lock().initialize() };
+    x86_64::instructions::interrupts::enable();
+    video::gop::init(boot_info.framebuffer.as_ref().unwrap().info());
+
+    serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
+    ramdisk::init(*ramdisk_addr, ramdisk_size); 
+
+    unsafe {
+        MAPPER = Some(mapper);
+        FRAME_ALLOCATOR = Some(frame_allocator);
+    }
+    
+    //unsafe { serial_println!("{:?}", MAPPER.borrow()); }
+    acpi::init(rsdp_addr);
+    pci::init();
+}
