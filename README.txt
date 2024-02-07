@@ -20,6 +20,7 @@ Roadmap
   x ELF loader
   x Multitasking
   x Modules
+  x Basic network support
   x Full ACPI support (AML, MADT, DSDT, other tables...)
   x Full GOP support (print to screen)
 
