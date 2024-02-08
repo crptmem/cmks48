@@ -1,15 +1,13 @@
 extern crate lazy_static;
-
-use core::borrow::Borrow;
-use core::ptr;
+extern crate alloc;
 
 use crate::drivers::pci;
-use crate::init::ramdisk::{self, read_ramdisk};
+use crate::init::ramdisk::{self};
 use crate::{mm, serial_println, video};
-use crate::common::x86::{gdt, idt, memory, serial};
+use crate::common::x86::{gdt, idt, memory};
 use x86_64::{structures::paging::OffsetPageTable, VirtAddr};
 use x86_64::structures::paging::Page;
-use crate::common::x86::acpi;
+use core::alloc::Layout; 
 
 pub static mut MAPPER: Option<OffsetPageTable<'static>> = None;
 pub static mut FRAME_ALLOCATOR: Option<memory::BootInfoFrameAllocator> = None;
@@ -40,7 +38,7 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
         frame_allocator: frame_allocator.clone(),
         mapper
     };
-    
+
     serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
     ramdisk::init(*ramdisk_addr, ramdisk_size, &mut paging); 
     //acpi::init(rsdp_addr);

@@ -5,7 +5,7 @@ use pic8259::ChainedPics;
 use spin;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 use crate::{serial_println, serial_print};
-
+use core::arch::asm;
 pub const PIC_1_OFFSET: u8 = 32;
 pub const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
 
@@ -35,10 +35,12 @@ lazy_static! {
         idt.breakpoint.set_handler_fn(breakpoint_handler);
         unsafe {
             idt.page_fault.set_handler_fn(page_fault_handler);
+            idt.general_protection_fault.set_handler_fn(general_protection_fault_handler);
             idt.double_fault
                 .set_handler_fn(double_fault_handler)
                 .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
         }
+        idt[0x80].set_handler_fn(syscall);
         idt[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
         idt[InterruptIndex::Keyboard.as_usize()].set_handler_fn(keyboard_interrupt_handler);
         idt
@@ -47,6 +49,12 @@ lazy_static! {
 
 pub fn init() {
     IDT.load();
+}
+
+extern "x86-interrupt" fn syscall(stack_frame: InterruptStackFrame) {
+    let rbx: u32;
+    unsafe { asm!("mov {:r}, rbx", out(reg) rbx) };
+    serial_println!("syscall! {:#016x}", rbx);
 }
 
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: InterruptStackFrame) {
@@ -69,6 +77,16 @@ extern "x86-interrupt" fn page_fault_handler(
     serial_println!("Page fault");
     serial_println!("Accessed Address: {:?}", Cr2::read());
     serial_println!("Error Code: {:?}", error_code);
+    serial_println!("{:#?}", stack_frame);
+    loop{}
+}
+
+extern "x86-interrupt" fn general_protection_fault_handler(
+    stack_frame: InterruptStackFrame,
+    error_code: u64
+) {
+
+    serial_println!("General protection fault, error_code={:#06x}", error_code);
     serial_println!("{:#?}", stack_frame);
     loop{}
 }

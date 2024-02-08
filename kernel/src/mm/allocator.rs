@@ -11,7 +11,7 @@ use x86_64::{
 
 use crate::serial_println;
 
-pub const HEAP_START: *mut u8 = 0x_4444_4444_0000 as *mut u8;
+pub const HEAP_START: *mut u8 = 0x_2222_2222_0000 as *mut u8;
 pub const HEAP_SIZE: usize = 100 * 1024; // 100 KiB
 
 #[global_allocator]
