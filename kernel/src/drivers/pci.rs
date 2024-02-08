@@ -4,15 +4,15 @@ use alloc::vec::Vec;
 
 use crate::serial_println;
 
-pub struct pci_device {
-    pub vendor: u16,
-    pub device: u16,
-    pub class: u16,
-    pub func: u16,
-    pub subclass: u16
+pub struct PciDevice {
+    pub vendor: u32,
+    pub device: u32,
+    pub class: u32,
+    pub function: u16,
+    pub subclass: u32
 }
 
-static mut PCI_DEVICES: Vec<pci_device> = Vec::new();
+static mut PCI_DEVICES: Vec<PciDevice> = Vec::new();
 
 pub fn read_word(bus: u16, slot: u16, func: u16, offset: u16) -> u32 {
     let address: u32 = ((((bus as u32) << 16u32) | ((slot as u32) << 11u32) | ((func as u32) << 8u32) | ((offset as u32) & 0xFC)) as u32 | 0x80000000u32);
@@ -50,6 +50,13 @@ pub fn init() {
                 let class = get_class(bus, slot, function);
                 let subclass = get_subclass(bus, slot, function);
                 serial_println!("pci: vendor={:#06x}, device={:#06x}, class={:#06x}, subclass={:#06x}", vendor, device, class, subclass);
+                unsafe { PCI_DEVICES.push(PciDevice {
+                    vendor,
+                    device,
+                    class,
+                    function,
+                    subclass
+                }); }
            }
        }
    } 

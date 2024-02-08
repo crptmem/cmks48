@@ -15,10 +15,8 @@ x86_64 = "0.14.11"
 cpio_reader = "0.1.1"
 crossbeam-queue = { version = "0.3.11", default-features = false, features = ["alloc"] }
 elf = { version = "0.7.4", default-features = false }
+tinytga = "0.5.0"
 
 [dependencies.lazy_static]
 version = "1.4.0"
 features = ["spin_no_std"]
-
-[package.metadata.bootloader]
-map-physical-memory = true

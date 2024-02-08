@@ -13,6 +13,7 @@ pub struct Task {
 }
 
 pub mod elf;
+pub mod module;
 
 impl Task {
     pub fn new(future: impl Future<Output = ()> + 'static) -> Task {

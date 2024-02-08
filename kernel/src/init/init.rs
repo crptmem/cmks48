@@ -1,5 +1,6 @@
 extern crate lazy_static;
 
+use core::borrow::Borrow;
 use core::ptr;
 
 use crate::drivers::pci;
@@ -7,10 +8,16 @@ use crate::init::ramdisk::{self, read_ramdisk};
 use crate::{mm, serial_println, video};
 use crate::common::x86::{gdt, idt, memory, serial};
 use x86_64::{structures::paging::OffsetPageTable, VirtAddr};
+use x86_64::structures::paging::Page;
 use crate::common::x86::acpi;
 
 pub static mut MAPPER: Option<OffsetPageTable<'static>> = None;
 pub static mut FRAME_ALLOCATOR: Option<memory::BootInfoFrameAllocator> = None;
+
+pub struct Paging {
+    pub frame_allocator: memory::BootInfoFrameAllocator,
+    pub mapper: OffsetPageTable<'static>
+}
 
 pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
     let rsdp_addr: u64 = *boot_info.rsdp_addr.as_ref().unwrap();
@@ -29,15 +36,13 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
     x86_64::instructions::interrupts::enable();
     video::gop::init(boot_info.framebuffer.as_ref().unwrap().info());
 
-    serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
-    ramdisk::init(*ramdisk_addr, ramdisk_size); 
-
-    unsafe {
-        MAPPER = Some(mapper);
-        FRAME_ALLOCATOR = Some(frame_allocator);
-    }
+    let mut paging = Paging {
+        frame_allocator: frame_allocator.clone(),
+        mapper
+    };
     
-    //unsafe { serial_println!("{:?}", MAPPER.borrow()); }
-    acpi::init(rsdp_addr);
+    serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
+    ramdisk::init(*ramdisk_addr, ramdisk_size, &mut paging); 
+    //acpi::init(rsdp_addr);
     pci::init();
 }

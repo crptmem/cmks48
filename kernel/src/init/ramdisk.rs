@@ -1,13 +1,17 @@
 extern crate alloc;
 use core::ptr;
+use core::slice::SlicePattern;
 use alloc::vec::Vec;
 use crate::init::ramdisk::psf::PSF1Font;
+use crate::task::module;
 use crate::{serial_println, video::psf::{self, PSF2Font}};
 use crate::init::ramdisk::psf::print_bitmap;
 
+use super::init::Paging;
+
 pub static mut RAMDISK: Vec<u8> = Vec::new();
 
-pub fn init(ramdisk_addr: u64, ramdisk_size: usize) {
+pub fn init(ramdisk_addr: u64, ramdisk_size: usize, paging: &mut Paging) {
     unsafe { 
         RAMDISK = read_ramdisk(ramdisk_addr, ramdisk_size);
         for entry in cpio_reader::iter_files(&RAMDISK.as_mut()) {
@@ -17,6 +21,13 @@ pub fn init(ramdisk_addr: u64, ramdisk_size: usize) {
                 let font = PSF1Font::parse(entry.file()).unwrap();  
                 serial_println!("psf: glyph count: {}", font.glyph_count());
                 serial_println!("psf: glyph size: {:?}", font.glyph_size());
+            }
+
+            if entry.name().starts_with("modules/") {
+                serial_println!("ramdisk: loading module {}", entry.name());
+                module::load(entry.name()
+                             .strip_prefix("modules/")
+                             .unwrap(), entry.file().as_slice(), paging);
             }
         }
     }
