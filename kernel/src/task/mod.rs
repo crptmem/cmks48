@@ -12,6 +12,8 @@ pub struct Task {
     future: Pin<Box<dyn Future<Output = ()>>>,
 }
 
+pub mod simple_executor;
+pub mod executor;
 pub mod elf;
 pub mod module;
 

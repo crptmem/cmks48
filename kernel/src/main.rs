@@ -33,7 +33,6 @@ pub static mut FRAME_ALLOCATOR: Option<BootInfoFrameAllocator> = None;
 
 fn kernel_main(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     init::init::kernel_init(boot_info);
-    serial_println!("ready");
     loop {}
 }
 

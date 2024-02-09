@@ -8,6 +8,8 @@ use crate::common::x86::{gdt, idt, memory};
 use x86_64::{structures::paging::OffsetPageTable, VirtAddr};
 use x86_64::structures::paging::Page;
 use core::alloc::Layout; 
+use crate::task::Task;
+use crate::task::executor::Executor;
 
 pub static mut MAPPER: Option<OffsetPageTable<'static>> = None;
 pub static mut FRAME_ALLOCATOR: Option<memory::BootInfoFrameAllocator> = None;
@@ -40,7 +42,10 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
     };
 
     serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
-    ramdisk::init(*ramdisk_addr, ramdisk_size, &mut paging); 
+    ramdisk::init(*ramdisk_addr, ramdisk_size, &mut paging);
+    let mut executor = Executor::new();
+    //executor.spawn(Task::new();
+    //executor.run();
     //acpi::init(rsdp_addr);
-    pci::init();
+    //pci::init();
 }
