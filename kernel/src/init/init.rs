@@ -5,9 +5,11 @@ use crate::drivers::pci;
 use crate::init::ramdisk::{self};
 use crate::{mm, serial_println, video};
 use crate::common::x86::{gdt, idt, memory};
-use x86_64::{structures::paging::OffsetPageTable, VirtAddr};
+use bootloader_api::info::MemoryRegions;
+use x86_64::{structures::paging::OffsetPageTable, VirtAddr, registers::control::Cr3};
 use x86_64::structures::paging::Page;
-use core::alloc::Layout; 
+use core::alloc::Layout;
+use core::ops::DerefMut;
 use crate::task::Task;
 use crate::task::executor::Executor;
 
@@ -16,7 +18,8 @@ pub static mut FRAME_ALLOCATOR: Option<memory::BootInfoFrameAllocator> = None;
 
 pub struct Paging {
     pub frame_allocator: memory::BootInfoFrameAllocator,
-    pub mapper: OffsetPageTable<'static>
+    pub mapper: OffsetPageTable<'static>,
+    pub memory_regions: &'static MemoryRegions
 }
 
 pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
@@ -35,13 +38,15 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
     unsafe { idt::PICS.lock().initialize() };
     x86_64::instructions::interrupts::enable();
     video::gop::init(boot_info.framebuffer.as_ref().unwrap().info());
-
+    
     let mut paging = Paging {
         frame_allocator: frame_allocator.clone(),
-        mapper
+        mapper,
+        memory_regions: &boot_info.memory_regions
     };
-
+    
     serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
+    serial_println!("init: cr3={:?}", Cr3::read());
     ramdisk::init(*ramdisk_addr, ramdisk_size, &mut paging);
     let mut executor = Executor::new();
     //executor.spawn(Task::new();

@@ -1,6 +1,7 @@
 extern crate alloc;
 use core::ptr;
 use core::slice::SlicePattern;
+use bootloader_api::info::MemoryRegions;
 use alloc::vec::Vec;
 use crate::init::ramdisk::psf::PSF1Font;
 use crate::task::module;

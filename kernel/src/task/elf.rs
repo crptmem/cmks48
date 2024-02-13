@@ -13,10 +13,39 @@ use crate::task::Task;
 use crate::{serial_println, FRAME_ALLOCATOR, MAPPER};
 use core::alloc::Layout;
 use core::mem::transmute;
-use core::ops::Sub;
+use core::slice::SlicePattern;
 use pretty_hex::*;
 
 use super::executor::Executor;
+
+#[derive(Debug)]
+struct Symbol {
+    name: [u8; 16],
+    ptr: u64
+}
+
+static mut SYMBOLS: Vec<Symbol> = Vec::new();
+
+fn symbol_register(name: [u8; 16], ptr: u64) {
+    serial_println!("symbol_register: name={:?} ptr={:#016x}", name.as_ascii().unwrap(), ptr);
+    unsafe { SYMBOLS.push(Symbol {
+        name,
+        ptr
+    }); }
+    let code: extern "C" fn(u64, u64, u64) = unsafe { transmute(ptr) };
+    for x in 0..1280 {
+        for y in 0..720 {
+            (code)(x, y, x * y);
+        }
+    }
+}
+
+fn call_symbol(name: [u8; 16]) {
+    unsafe { 
+        let sym = SYMBOLS.iter().position(|r| r.name == name).unwrap();
+        serial_println!("sym {:?}", sym);
+    }
+}
 
 pub fn load_elf(data: &[u8], paging: &mut Paging) {
     let file = ElfBytes::<AnyEndian>::minimal_parse(data).expect("chego blya");
@@ -53,8 +82,8 @@ pub fn load_elf(data: &[u8], paging: &mut Paging) {
             page_ptr.copy_from(data_ptr.offset((section.p_offset / 8) as isize) as *const u64, (section.p_filesz) as usize);
         }
     }
-    //serial_println!("ELF: entry is {:#016x}", file.ehdr.e_entry);
-    let code: extern "C" fn() = unsafe { transmute(file.ehdr.e_entry) };
+    serial_println!("ELF: entry is {:#016x}", file.ehdr.e_entry);
+    let code: extern "C" fn(fn([u8; 16], u64)) = unsafe { transmute(file.ehdr.e_entry) };
     //executor.spawn(Task::new(code));
-    (code)();
+    (code)(symbol_register);
 }

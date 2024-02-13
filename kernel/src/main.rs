@@ -2,6 +2,7 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 #![feature(slice_pattern)]
+#![feature(ascii_char)]
 extern crate lazy_static;
 
 use core::{borrow::Borrow, panic::PanicInfo};

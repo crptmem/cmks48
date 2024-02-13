@@ -1,5 +1,5 @@
 use crate::common::x86::gdt;
-use x86_64::structures::idt::PageFaultErrorCode;
+use x86_64::{registers::control::Cr3, structures::idt::PageFaultErrorCode};
 use lazy_static::lazy_static;
 use pic8259::ChainedPics;
 use spin;
@@ -76,6 +76,7 @@ extern "x86-interrupt" fn page_fault_handler(
 
     serial_println!("Page fault");
     serial_println!("Accessed Address: {:?}", Cr2::read());
+    serial_println!("Current page table: {:?}", Cr3::read());
     serial_println!("Error Code: {:?}", error_code);
     serial_println!("{:#?}", stack_frame);
     loop{}
