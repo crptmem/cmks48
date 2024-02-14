@@ -21,7 +21,7 @@ use super::executor::Executor;
 #[derive(Debug)]
 struct Symbol {
     name: [u8; 16],
-    ptr: u64
+    ptr: *mut u64
 }
 
 static mut SYMBOLS: Vec<Symbol> = Vec::new();
@@ -30,20 +30,14 @@ fn symbol_register(name: [u8; 16], ptr: u64) {
     serial_println!("symbol_register: name={:?} ptr={:#016x}", name.as_ascii().unwrap(), ptr);
     unsafe { SYMBOLS.push(Symbol {
         name,
-        ptr
+        ptr: ptr as *mut u64
     }); }
-    let code: extern "C" fn(u64, u64, u64) = unsafe { transmute(ptr) };
-    for x in 0..1280 {
-        for y in 0..720 {
-            (code)(x, y, x * y);
-        }
-    }
 }
 
-fn call_symbol(name: [u8; 16]) {
+pub fn get_symbol_ptr(name: &[u8]) -> *mut u64 {
     unsafe { 
-        let sym = SYMBOLS.iter().position(|r| r.name == name).unwrap();
-        serial_println!("sym {:?}", sym);
+        let sym = SYMBOLS.iter().find(|r| r.name.starts_with(name)).unwrap();
+        return sym.ptr;
     }
 }
 

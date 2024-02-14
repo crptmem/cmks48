@@ -1,16 +1,12 @@
 extern crate lazy_static;
 extern crate alloc;
 
-use crate::drivers::pci;
+use core::mem::transmute;
 use crate::init::ramdisk::{self};
-use crate::{mm, serial_println, video};
+use crate::{mm, serial_println, task, video};
 use crate::common::x86::{gdt, idt, memory};
 use bootloader_api::info::MemoryRegions;
 use x86_64::{structures::paging::OffsetPageTable, VirtAddr, registers::control::Cr3};
-use x86_64::structures::paging::Page;
-use core::alloc::Layout;
-use core::ops::DerefMut;
-use crate::task::Task;
 use crate::task::executor::Executor;
 
 pub static mut MAPPER: Option<OffsetPageTable<'static>> = None;
@@ -48,6 +44,14 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
     serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
     serial_println!("init: cr3={:?}", Cr3::read());
     ramdisk::init(*ramdisk_addr, ramdisk_size, &mut paging);
+
+    let putpix: extern "C" fn(u64, u64, u64) = unsafe { transmute(task::elf::get_symbol_ptr(b"putpix")) };
+    for x in 200..500 {
+        for y in 200..300 {
+            (putpix)(x, y, x * y / 2 * y);
+        }
+    }
+
     let mut executor = Executor::new();
     //executor.spawn(Task::new();
     //executor.run();
