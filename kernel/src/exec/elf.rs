@@ -9,7 +9,7 @@ use x86_64::VirtAddr;
 use x86_64::structures::paging::{FrameAllocator, Page};
 use crate::init::init::Paging;
 use crate::common::x86::memory;
-use crate::serial_println;
+use crate::{serial_println, FRAME_ALLOCATOR, MAPPER};
 use crate::exec::symbol::symbol_register;
 use core::mem::transmute;
 

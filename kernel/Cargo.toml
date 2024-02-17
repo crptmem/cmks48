@@ -17,6 +17,7 @@ cpio_reader = "0.1.1"
 elf = { version = "0.7.4", default-features = false }
 tinytga = "0.5.0"
 pretty-hex = "0.4.1"
+ascii = { version = "1.1.0", default-features = false }
 
 [dependencies.crossbeam-queue]
 version = "0.2.1"

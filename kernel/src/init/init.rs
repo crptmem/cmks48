@@ -46,10 +46,6 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
     serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
     serial_println!("init: cr3={:?}", Cr3::read());
     ramdisk::init(*ramdisk_addr, ramdisk_size, &mut paging);
-    
-    let pci_probe: extern "C" fn() = unsafe { transmute(get_symbol_ptr(b"pci_probe")) };
-    (pci_probe)();
-
     let mut executor = Executor::new();
     //executor.spawn(Task::new();
     //executor.run();
