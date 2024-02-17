@@ -9,37 +9,9 @@ use x86_64::VirtAddr;
 use x86_64::structures::paging::{FrameAllocator, Page};
 use crate::init::init::Paging;
 use crate::common::x86::memory;
-use crate::task::Task;
-use crate::{serial_println, FRAME_ALLOCATOR, MAPPER};
-use core::alloc::Layout;
+use crate::serial_println;
+use crate::exec::symbol::symbol_register;
 use core::mem::transmute;
-use core::slice::SlicePattern;
-use pretty_hex::*;
-
-use super::executor::Executor;
-
-#[derive(Debug)]
-struct Symbol {
-    name: [u8; 16],
-    ptr: *mut u64
-}
-
-static mut SYMBOLS: Vec<Symbol> = Vec::new();
-
-fn symbol_register(name: [u8; 16], ptr: u64) {
-    serial_println!("symbol_register: name={:?} ptr={:#016x}", name.as_ascii().unwrap(), ptr);
-    unsafe { SYMBOLS.push(Symbol {
-        name,
-        ptr: ptr as *mut u64
-    }); }
-}
-
-pub fn get_symbol_ptr(name: &[u8]) -> *mut u64 {
-    unsafe { 
-        let sym = SYMBOLS.iter().find(|r| r.name.starts_with(name)).unwrap();
-        return sym.ptr;
-    }
-}
 
 pub fn load_elf(data: &[u8], paging: &mut Paging) {
     let file = ElfBytes::<AnyEndian>::minimal_parse(data).expect("chego blya");
@@ -57,27 +29,27 @@ pub fn load_elf(data: &[u8], paging: &mut Paging) {
     }
 
     for section in all_load_phdrs {
-        serial_println!("ELF: LOAD section: p_paddr={:#016x}, p_vaddr={:#016x}, p_offset={:#016x}, p_filesz={:#016x}, p_memsz={:#016x}",
+        /* serial_println!("ELF: LOAD section: p_paddr={:#016x}, p_vaddr={:#016x}, p_offset={:#016x}, p_filesz={:#016x}, p_memsz={:#016x}",
             section.p_paddr,
             section.p_vaddr,
             section.p_offset,
             section.p_filesz,
-            section.p_memsz);
+            section.p_memsz); */
         
         unsafe {
             let page: x86_64::structures::paging::Page<x86_64::structures::paging::Size4KiB> = Page::containing_address(VirtAddr::new(section.p_vaddr)); 
             let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
             let data_ptr: *const u64 = data.as_ptr() as *const u64;
-            serial_println!("ELF: copying {:#08x} ({}) bytes from {:?}-{:?} to {:?}",
+            /*serial_println!("ELF: copying {:#08x} ({}) bytes from {:?}-{:?} to {:?}",
                 section.p_filesz,
                 section.p_filesz,
                 data_ptr.offset((section.p_offset / 8) as isize),
-                data_ptr.offset((section.p_offset + section.p_filesz) as isize), page_ptr);
+                data_ptr.offset((section.p_offset + section.p_filesz) as isize), page_ptr);*/
             page_ptr.copy_from(data_ptr.offset((section.p_offset / 8) as isize) as *const u64, (section.p_filesz) as usize);
         }
     }
-    serial_println!("ELF: entry is {:#016x}", file.ehdr.e_entry);
-    let code: extern "C" fn(fn([u8; 16], u64)) = unsafe { transmute(file.ehdr.e_entry) };
+    // serial_println!("ELF: entry is {:#016x}", file.ehdr.e_entry);
+    let code: extern "C" fn(fn([u8; 24], u64)) = unsafe { transmute(file.ehdr.e_entry) };
     //executor.spawn(Task::new(code));
     (code)(symbol_register);
 }

@@ -1,12 +1,10 @@
 extern crate alloc;
-use core::ptr;
+use core::ptr::{self, addr_of};
 use core::slice::SlicePattern;
-use bootloader_api::info::MemoryRegions;
 use alloc::vec::Vec;
 use crate::init::ramdisk::psf::PSF1Font;
-use crate::task::module;
+use crate::exec::module;
 use crate::{serial_println, video::psf::{self, PSF2Font}};
-use crate::init::ramdisk::psf::print_bitmap;
 
 use super::init::Paging;
 
@@ -17,18 +15,17 @@ pub fn init(ramdisk_addr: u64, ramdisk_size: usize, paging: &mut Paging) {
         RAMDISK = read_ramdisk(ramdisk_addr, ramdisk_size);
         for entry in cpio_reader::iter_files(&RAMDISK.as_mut()) {
             serial_println!("ramdisk: entry name: {}", entry.name());
-            if entry.name() == "zap-light16.psf" {
-                serial_println!("ramdisk: font found");
-                let font = PSF1Font::parse(entry.file()).unwrap();  
-                serial_println!("psf: glyph count: {}", font.glyph_count());
-                serial_println!("psf: glyph size: {:?}", font.glyph_size());
-            }
-
             if entry.name().starts_with("modules/") {
                 serial_println!("ramdisk: loading module {}", entry.name());
                 module::load(entry.name()
                              .strip_prefix("modules/")
                              .unwrap(), entry.file().as_slice(), paging);
+            }
+            if entry.name() == "zap-light16.psf" {
+                serial_println!("ramdisk: font found");
+                let font = PSF1Font::parse(entry.file()).unwrap();  
+                serial_println!("psf: glyph count: {}", font.glyph_count());
+                serial_println!("psf: glyph size: {:?}", font.glyph_size());
             }
         }
     }

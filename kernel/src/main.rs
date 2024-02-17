@@ -17,6 +17,7 @@ pub mod mm;
 pub mod init;
 pub mod task;
 pub mod drivers;
+pub mod exec;
 
 const FRAMEBUFFER: u64 = 0x000f_8000_0000;
 

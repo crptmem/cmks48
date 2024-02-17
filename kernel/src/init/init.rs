@@ -1,6 +1,7 @@
 extern crate lazy_static;
 extern crate alloc;
 
+use crate::init::ramdisk::RAMDISK;
 use core::mem::transmute;
 use crate::init::ramdisk::{self};
 use crate::{mm, serial_println, task, video};
@@ -8,6 +9,8 @@ use crate::common::x86::{gdt, idt, memory};
 use bootloader_api::info::MemoryRegions;
 use x86_64::{structures::paging::OffsetPageTable, VirtAddr, registers::control::Cr3};
 use crate::task::executor::Executor;
+use crate::exec::symbol::get_symbol_ptr;
+use core::ptr::addr_of;
 
 pub static mut MAPPER: Option<OffsetPageTable<'static>> = None;
 pub static mut FRAME_ALLOCATOR: Option<memory::BootInfoFrameAllocator> = None;
@@ -33,7 +36,6 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
     idt::init();
     unsafe { idt::PICS.lock().initialize() };
     x86_64::instructions::interrupts::enable();
-    video::gop::init(boot_info.framebuffer.as_ref().unwrap().info());
     
     let mut paging = Paging {
         frame_allocator: frame_allocator.clone(),
@@ -44,13 +46,9 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
     serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
     serial_println!("init: cr3={:?}", Cr3::read());
     ramdisk::init(*ramdisk_addr, ramdisk_size, &mut paging);
-
-    let putpix: extern "C" fn(u64, u64, u64) = unsafe { transmute(task::elf::get_symbol_ptr(b"putpix")) };
-    for x in 200..500 {
-        for y in 200..300 {
-            (putpix)(x, y, x * y / 2 * y);
-        }
-    }
+    
+    let pci_probe: extern "C" fn() = unsafe { transmute(get_symbol_ptr(b"pci_probe")) };
+    (pci_probe)();
 
     let mut executor = Executor::new();
     //executor.spawn(Task::new();
