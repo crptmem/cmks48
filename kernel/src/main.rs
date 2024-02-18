@@ -9,14 +9,12 @@ use core::{borrow::Borrow, panic::PanicInfo};
 use bootloader_api::config::Mapping;
 use common::x86::memory::BootInfoFrameAllocator;
 use x86_64::{structures::paging::OffsetPageTable, VirtAddr};
-use crate::{common::x86::serial, video::gop::put_pixel};
+use crate::common::x86::serial;
 
 pub mod common;
-pub mod video;
 pub mod mm;
 pub mod init;
 pub mod task;
-pub mod drivers;
 pub mod exec;
 
 const FRAMEBUFFER: u64 = 0x000f_8000_0000;

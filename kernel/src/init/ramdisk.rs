@@ -2,9 +2,8 @@ extern crate alloc;
 use core::ptr::{self, addr_of};
 use core::slice::SlicePattern;
 use alloc::vec::Vec;
-use crate::init::ramdisk::psf::PSF1Font;
 use crate::exec::module;
-use crate::{serial_println, video::psf::{self, PSF2Font}};
+use crate::serial_println;
 
 use super::init::Paging;
 
@@ -20,12 +19,6 @@ pub fn init(ramdisk_addr: u64, ramdisk_size: usize, paging: &mut Paging) {
                 module::load(entry.name()
                              .strip_prefix("modules/")
                              .unwrap(), entry.file().as_slice(), paging);
-            }
-            if entry.name() == "zap-light16.psf" {
-                serial_println!("ramdisk: font found");
-                let font = PSF1Font::parse(entry.file()).unwrap();  
-                serial_println!("psf: glyph count: {}", font.glyph_count());
-                serial_println!("psf: glyph size: {:?}", font.glyph_size());
             }
         }
     }

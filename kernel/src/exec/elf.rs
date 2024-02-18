@@ -13,7 +13,7 @@ use crate::{serial_println, FRAME_ALLOCATOR, MAPPER};
 use crate::exec::symbol::symbol_register;
 use core::mem::transmute;
 
-pub fn load_elf(data: &[u8], paging: &mut Paging) {
+pub fn load_elf(data: &[u8], paging: &mut Paging) {/*
     let file = ElfBytes::<AnyEndian>::minimal_parse(data).expect("chego blya");
     let all_load_phdrs: Vec<ProgramHeader> = file.segments().unwrap()
         .iter()
@@ -51,5 +51,5 @@ pub fn load_elf(data: &[u8], paging: &mut Paging) {
     // serial_println!("ELF: entry is {:#016x}", file.ehdr.e_entry);
     let code: extern "C" fn(fn([u8; 24], u64)) = unsafe { transmute(file.ehdr.e_entry) };
     //executor.spawn(Task::new(code));
-    //(code)(symbol_register);
+    //(code)(symbol_register);*/
 }

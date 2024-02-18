@@ -69,7 +69,7 @@ unsafe impl FrameAllocator<Size4KiB> for EmptyFrameAllocator {
 }
 
 /// A FrameAllocator that returns usable frames from the bootloader's memory map.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct BootInfoFrameAllocator {
     memory_map: &'static MemoryRegions,
     next: usize,

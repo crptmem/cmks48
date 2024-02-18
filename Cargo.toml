@@ -16,3 +16,4 @@ x86_64 = "0.14.11"
 
 [workspace]
 members = ["kernel"]
+exclude = ["modules"]
