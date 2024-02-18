@@ -12,8 +12,18 @@ use crate::common::x86::memory;
 use crate::serial_println;
 use crate::exec::symbol::{get_symbol_ptr, symbol_register};
 use core::mem::transmute;
+use core::ptr::addr_of;
 
 static mut MODULES_COUNT: usize = 0;
+static mut RSDP: u64 = 0x000000;
+
+fn get_rsdp() -> u64 {
+   unsafe { RSDP } 
+}
+
+pub fn init() {
+    symbol_register("get_rsdp".as_bytes(), (get_rsdp as *const ()) as *mut u64);
+}
 
 fn load_elf(data: &[u8], paging: &mut Paging) {
     let file = ElfBytes::<AnyEndian>::minimal_parse(data).expect("chego blya");
@@ -22,6 +32,9 @@ fn load_elf(data: &[u8], paging: &mut Paging) {
         .filter(|phdr|{phdr.p_type == PT_LOAD})
         .collect();
 
+    unsafe {
+        RSDP = paging.rsdp_addr;
+    }
     let first_page = paging.frame_allocator.allocate_frame().unwrap();
     memory::create_mapping(Page::containing_address(VirtAddr::new(first_page.start_address().as_u64())), first_page.start_address().as_u64(), &mut paging.mapper, &mut paging.frame_allocator);
     serial_println!("mod: loading to {:#016x}", first_page.start_address().as_u64());
@@ -53,10 +66,15 @@ fn load_elf(data: &[u8], paging: &mut Paging) {
             page_ptr.copy_from(data_ptr.offset((all_load_phdrs[i].p_offset / 8) as isize) as *const u64, (all_load_phdrs[i].p_filesz) as usize);
         }
     }
-
-    let code: extern "C" fn(fn([u8; 24], u64), fn(&[u8]) -> *mut u64) = unsafe { transmute(first_page.start_address().as_u64() + file.ehdr.e_entry - 0x400000) };
+    serial_println!("mod: entry is {:#016x}", file.ehdr.e_entry);
     unsafe { MODULES_COUNT += 1; };
-    (code)(symbol_register, get_symbol_ptr);
+    if file.ehdr.e_entry >= 0x400000 {
+        let code: extern "C" fn(fn(&[u8], *mut u64), fn(&[u8]) -> *mut u64) = unsafe { transmute(first_page.start_address().as_u64() + file.ehdr.e_entry - 0x400000) }; 
+        (code)(symbol_register, get_symbol_ptr);
+    } else {
+        let code: extern "C" fn(fn(&[u8], *mut u64), fn(&[u8]) -> *mut u64) = unsafe { transmute(first_page.start_address().as_u64() + file.ehdr.e_entry) }; 
+        (code)(symbol_register, get_symbol_ptr);
+    }
 }
 
 pub fn load(name: &str, data: &[u8], paging: &mut Paging) {

@@ -2,6 +2,7 @@ CMKS
 ====
 
 An x64 kernel for UEFI systems written in Rust
+Kernel is written in Rust and modules in C.
 
 What have been done
 ===================
@@ -13,13 +14,13 @@ What have been done
   * IDT & GDT
   * ELF loader
   * PSF parsing
+  * Modules
   * ACPI (partial)
   * GOP (partial)
 
 Roadmap
 =======
   x Multitasking
-  x Modules
   x Basic network support
   x Full ACPI support (AML, MADT, DSDT, other tables...)
   x Full GOP support (print to screen)

@@ -1,16 +1,14 @@
 extern crate lazy_static;
 extern crate alloc;
 
-use crate::init::ramdisk::RAMDISK;
-use core::mem::transmute;
+use crate::exec::module;
 use crate::init::ramdisk::{self};
 use crate::{mm, serial_println, task, video};
 use crate::common::x86::{gdt, idt, memory};
 use bootloader_api::info::MemoryRegions;
-use x86_64::{structures::paging::OffsetPageTable, VirtAddr, registers::control::Cr3};
+use x86_64::structures::paging::FrameAllocator;
+use x86_64::{structures::paging::OffsetPageTable, VirtAddr, registers::control::Cr3, structures::paging::Page};
 use crate::task::executor::Executor;
-use crate::exec::symbol::get_symbol_ptr;
-use core::ptr::addr_of;
 
 pub static mut MAPPER: Option<OffsetPageTable<'static>> = None;
 pub static mut FRAME_ALLOCATOR: Option<memory::BootInfoFrameAllocator> = None;
@@ -18,7 +16,8 @@ pub static mut FRAME_ALLOCATOR: Option<memory::BootInfoFrameAllocator> = None;
 pub struct Paging {
     pub frame_allocator: memory::BootInfoFrameAllocator,
     pub mapper: OffsetPageTable<'static>,
-    pub memory_regions: &'static MemoryRegions
+    pub memory_regions: &'static MemoryRegions,
+    pub rsdp_addr: u64
 }
 
 pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
@@ -36,15 +35,27 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
     idt::init();
     unsafe { idt::PICS.lock().initialize() };
     x86_64::instructions::interrupts::enable();
-    
+    module::init();
+
+    let rsdp_page = frame_allocator.allocate_frame().unwrap();
+    memory::create_mapping(Page::containing_address(VirtAddr::new(rsdp_page.start_address().as_u64())), rsdp_addr, &mut mapper, &mut frame_allocator);
+
+    for i in 1..10 {
+        let phys = frame_allocator.allocate_frame().unwrap();
+        memory::create_mapping(Page::containing_address(VirtAddr::new(phys.start_address().as_u64())), rsdp_addr + i * 0x1000, &mut mapper, &mut frame_allocator);
+    }
+
     let mut paging = Paging {
         frame_allocator: frame_allocator.clone(),
         mapper,
-        memory_regions: &boot_info.memory_regions
+        memory_regions: &boot_info.memory_regions,
+        rsdp_addr: rsdp_page.start_address().as_u64()
     };
-    
+
     serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
     serial_println!("init: cr3={:?}", Cr3::read());
+    serial_println!("init: rsdp_addr={:#016x}", rsdp_addr);
+
     ramdisk::init(*ramdisk_addr, ramdisk_size, &mut paging);
     let mut executor = Executor::new();
     //executor.spawn(Task::new();
