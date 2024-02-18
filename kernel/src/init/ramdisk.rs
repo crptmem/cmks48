@@ -13,9 +13,7 @@ pub fn init(ramdisk_addr: u64, ramdisk_size: usize, paging: &mut Paging) {
     unsafe { 
         RAMDISK = read_ramdisk(ramdisk_addr, ramdisk_size);
         for entry in cpio_reader::iter_files(&RAMDISK.as_mut()) {
-            serial_println!("ramdisk: entry name: {}", entry.name());
             if entry.name().starts_with("modules/") {
-                serial_println!("ramdisk: loading module {}", entry.name());
                 module::load(entry.name()
                              .strip_prefix("modules/")
                              .unwrap(), entry.file().as_slice(), paging);

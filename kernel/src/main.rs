@@ -17,7 +17,7 @@ pub mod init;
 pub mod task;
 pub mod exec;
 
-const FRAMEBUFFER: u64 = 0x000f_8000_0000;
+pub const FRAMEBUFFER: u64 = 0x000f_8000_0000;
 
 const CONFIG: bootloader_api::BootloaderConfig = {
     let mut config = bootloader_api::BootloaderConfig::new_default();

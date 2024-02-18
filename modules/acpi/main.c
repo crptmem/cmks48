@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdarg.h>
+#include <string.h>
 #include "lib.h"
 #include "acpi.h"
 
@@ -10,9 +11,11 @@ void _start(void (*symreg)(char[24], uint64_t *), uint64_t *(*getsym)(char[24]))
     * help
     */
   mprintf("acpi: acpi module v0.1 by corruptmemory  %s %s\n", __DATE__, __TIME__);
+
   uint64_t *(*get_rsdp)() = getsym("get_rsdp"); 
   uint64_t *(*get_paging)() = getsym("get_paging");
   uint64_t *(*mmap)(uint64_t *, uint64_t *, uint64_t *) = getsym("memory_map");
+
   uint64_t *rsdp = get_rsdp();
   mmap(rsdp, rsdp, get_paging());
   struct xsdp *xsdt = (struct xsdp *)get_rsdp();

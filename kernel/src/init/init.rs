@@ -3,7 +3,7 @@ extern crate alloc;
 
 use crate::exec::module;
 use crate::init::ramdisk::{self};
-use crate::{mm, serial_println};
+use crate::{mm, serial_println, FRAMEBUFFER, FRAME_ALLOCATOR};
 use crate::common::x86::{gdt, idt, memory};
 use bootloader_api::info::MemoryRegions;
 use x86_64::structures::paging::FrameAllocator;
