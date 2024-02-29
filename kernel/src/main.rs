@@ -33,8 +33,13 @@ bootloader_api::entry_point!(kernel_main, config = &CONFIG);
 pub static mut MAPPER: Option<OffsetPageTable<'static>> = None;
 pub static mut FRAME_ALLOCATOR: Option<BootInfoFrameAllocator> = None;
 
+/// Kernel main function
+///
+/// # Safety
+/// Kernel entry is itself unsafe because of many things being
+/// uninitialized
 fn kernel_main(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
-    init::init::kernel_init(boot_info);
+    unsafe { init::init::kernel_init(boot_info); }
     loop {}
 }
 

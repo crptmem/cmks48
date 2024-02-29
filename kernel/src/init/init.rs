@@ -18,7 +18,11 @@ pub struct Paging {
 
 pub static mut PAGING: Option<Paging> = None;
 
-pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
+/// Kernel initialization function
+///
+/// # Safety
+/// Initialization of many things is unsafe, so kernel_init is unsafe too
+pub unsafe fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
     let rsdp_addr: u64 = *boot_info.rsdp_addr.as_ref().unwrap();
     let phys_mem_offset = *boot_info.physical_memory_offset.as_ref().unwrap();
     let phys_mem_virtaddr = VirtAddr::new(phys_mem_offset);
@@ -31,23 +35,19 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
      
     gdt::init();    
     idt::init();
-    unsafe { userspace::init_syscalls(); }
-    unsafe { idt::PICS.lock().initialize() };
+    userspace::init_syscalls();
+    idt::PICS.lock().initialize();
     x86_64::instructions::interrupts::enable();
 
-    let paging = Paging {
+    let mut paging = Paging {
         mapper,
         frame_allocator,
         memory_regions: &boot_info.memory_regions,
         rsdp_addr
     };
 
-    unsafe { PAGING = Some(paging); }
-    unsafe {
-        x86_64::instructions::port::PortWrite::write_to_port(0xb2, 0xffu8);
-    }
     serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
     serial_println!("init: cr3={:?}", Cr3::read());
     serial_println!("init: rsdp_addr={:#016x}", rsdp_addr);
-    unsafe { ramdisk::init(*ramdisk_addr, ramdisk_size, &mut PAGING.as_mut().unwrap()); }
+    ramdisk::init(*ramdisk_addr, ramdisk_size, &mut paging);
 }

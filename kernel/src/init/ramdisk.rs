@@ -26,8 +26,6 @@ pub fn read_ramdisk(ramdisk_addr: u64, ramdisk_size: usize) -> Vec<u8> {
     let ramdisk_ptr: *const u8 = ramdisk_addr as *const u8;
     let mut ret: Vec<u8> = Vec::new();
 
-    // Use the pointer to read the ramdisk data
-    
     unsafe {
         // Iterate through the memory and print the first 16 bytes as hexadecimal
         let mut current_ptr = ramdisk_ptr;
