@@ -1,7 +1,6 @@
 use uart_16550::SerialPort;
 use spin::Mutex;
 use lazy_static::lazy_static;
-use core::format_args;
 
 lazy_static! {
     pub static ref SERIAL1: Mutex<SerialPort> = {
@@ -21,7 +20,7 @@ pub fn _print(args: ::core::fmt::Arguments) {
 #[macro_export]
 macro_rules! serial_print {
     ($($arg:tt)*) => {
-        $crate::serial::_print(format_args!($($arg)*));
+        $crate::serial::_print(format_args!($($arg)*))
     };
 }
 

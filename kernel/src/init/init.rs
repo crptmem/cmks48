@@ -6,8 +6,7 @@ use crate::task::userspace;
 use crate::{mm, serial_println};
 use crate::common::x86::{gdt, idt, memory};
 use bootloader_api::info::MemoryRegions;
-use x86_64::structures::paging::FrameAllocator;
-use x86_64::{structures::paging::OffsetPageTable, VirtAddr, registers::control::Cr3, structures::paging::Page};
+use x86_64::{structures::paging::OffsetPageTable, VirtAddr, registers::control::Cr3};
 
 #[derive(Debug)]
 pub struct Paging {

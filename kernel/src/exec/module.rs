@@ -7,12 +7,11 @@ use elf::segment::ProgramHeader;
 use alloc::vec::Vec;
 use x86_64::VirtAddr;
 use x86_64::structures::paging::{FrameAllocator, Page};
-use crate::init::init::{Paging, PAGING};
+use crate::init::init::Paging;
 use crate::common::x86::memory;
 use crate::serial_println;
 use crate::exec::symbol::{get_symbol_ptr, symbol_register};
 use core::mem::transmute;
-use core::ptr::addr_of;
 
 static mut MODULES_COUNT: usize = 0;
 

@@ -9,7 +9,6 @@ use x86_64::{
 use core::option::Option;
 use core::option::Option::None;
 use core::iter::Iterator;
-use alloc::boxed::Box;
 
 /// Initialize a new OffsetPageTable.
 ///
