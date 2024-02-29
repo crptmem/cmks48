@@ -4,6 +4,7 @@
 #![feature(slice_pattern)]
 #![feature(ascii_char)]
 #![feature(asm_const)]
+#![feature(exclusive_range_pattern)]
 extern crate lazy_static;
 
 use core::panic::PanicInfo;

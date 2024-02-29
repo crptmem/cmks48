@@ -2,7 +2,7 @@ extern crate alloc;
 use bootloader_api::info::{MemoryRegionKind, MemoryRegions};
 use x86_64::{
     structures::paging::{
-        FrameAllocator, Mapper, OffsetPageTable, Page, PageTable, PhysFrame, Size4KiB,
+        FrameAllocator, Mapper, OffsetPageTable, Page, PageTable, PageTableFlags, PhysFrame, Size4KiB
     },
     PhysAddr, VirtAddr,
 };
@@ -39,17 +39,14 @@ unsafe fn active_level_4_table(physical_memory_offset: VirtAddr) -> &'static mut
     &mut *page_table_ptr // unsafe
 }
 
-/// Creates an example mapping for the given page to frame `0xb8000`.
 pub fn create_mapping(
     page: Page,
     address: u64,
     mapper: &mut OffsetPageTable,
     frame_allocator: &mut impl FrameAllocator<Size4KiB>,
+    flags: PageTableFlags
 ) {
-    use x86_64::structures::paging::PageTableFlags as Flags;
-
     let frame = PhysFrame::containing_address(PhysAddr::new(address));
-    let flags = Flags::PRESENT | Flags::WRITABLE;
 
     let map_to_result = unsafe {
         mapper.map_to(page, frame, flags, frame_allocator)

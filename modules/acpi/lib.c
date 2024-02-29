@@ -1,67 +1,20 @@
 #include "lib.h"
-#define PORT 0x3f8
 
-uint32_t inl(uint16_t portid)
-{
-	uint32_t ret;
-	asm volatile("inl %%dx, %%eax":"=a"(ret):"d"(portid));
-	return ret;
-}
-
-void outw(uint16_t portid, uint16_t value)
-{
-	asm volatile("outw %%ax, %%dx": :"d" (portid), "a" (value));
-}
-void outl(uint16_t portid, uint32_t value)
-{
-	asm volatile("outl %%eax, %%dx": :"d" (portid), "a" (value));
+void exit(uint32_t code) {
+  asm volatile(
+    "movq $0x00, %%rbx\r\n"
+    "movq $0x50, %%rcx\r\n"
+    "int $0x80" 
+    ::: "rdi", "rbx");
 }
 
-static inline void outb(uint16_t port, uint8_t val)
-{
-    __asm__ volatile ( "outb %b0, %w1" : : "a"(val), "Nd"(port) : "memory");
-    /* There's an outb %al, $imm8 encoding, for compile-time constant port numbers that fit in 8b. (N constraint).
-     * Wider immediate constants would be truncated at assemble-time (e.g. "i" constraint).
-     * The  outb  %al, %dx  encoding is the only option for all other cases.
-     * %1 expands to %dx because  port  is a uint16_t.  %w1 could be used if we had the port number a wider C type */
-}
-
-static inline uint8_t inb(uint16_t port)
-{
-    uint8_t ret;
-    __asm__ volatile ( "inb %w1, %b0"
-                   : "=a"(ret)
-                   : "Nd"(port)
-                   : "memory");
-    return ret;
-}
-
-int is_transmit_empty() {
-   return inb(PORT + 5) & 0x20;
-}
- 
-void write_serial(char a) {
-   while (is_transmit_empty() == 0);
- 
-   outb(PORT,a);
-}
-
-uint32_t
-strlen(const char *str)
+uint32_t strlen(const char *str)
 {
 	const char *s;
 	for (s = str; *s; ++s)
 		;
 	return (s - str);
 }
-
-void write_string(char *str) {
-  const int len = strlen(str);
-  for(int i = 0; i < len; i++) {
-    write_serial(str[i]);
-  }
-}
-
 
 char * itoa( int value, char * str, int base )
 {
@@ -161,19 +114,6 @@ int vsprintf(char* buffer, const char* format, va_list args) {
     buffer[count] = '\0';
 
     return count;
-}
-
-int mprintf(const char *str, ...) {
-  if (!str)
-    return 0;
-  va_list ap;
-  char buf[4096];
-  va_start(ap, str);
-
-  vsprintf(buf, str, ap);
-
-  va_end(ap);
-  write_string(buf);
 }
 
 int memcmp(const void *v1, const void *v2, unsigned long n)

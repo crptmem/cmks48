@@ -5,7 +5,7 @@ use pic8259::ChainedPics;
 use spin;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 use crate::{serial_println, serial_print};
-use core::arch::asm;
+use core::{arch::asm, u32};
 pub const PIC_1_OFFSET: u8 = 32;
 pub const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
 
@@ -41,7 +41,9 @@ lazy_static! {
                 .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
         }
         idt[7].set_handler_fn(lpt1);
-        idt[0x80].set_handler_fn(syscall);
+        idt[0x80]
+            .set_handler_fn(syscall)
+            .set_privilege_level(x86_64::PrivilegeLevel::Ring3);
         idt[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
         idt[InterruptIndex::Keyboard.as_usize()].set_handler_fn(keyboard_interrupt_handler);
         idt
@@ -59,7 +61,14 @@ extern "x86-interrupt" fn lpt1(_stack_frame: InterruptStackFrame) {
 extern "x86-interrupt" fn syscall(_stack_frame: InterruptStackFrame) {
     let rbx: u32;
     unsafe { asm!("mov {:r}, rbx", out(reg) rbx) };
-    serial_println!("syscall! {:#016x}", rbx);
+    serial_println!("syscall: {:#016x}", rbx);
+    match rbx {
+        0x00 => {
+            serial_println!("exiting...");
+        },
+        1u32..u32::MAX => {},
+        u32::MAX => {},
+    }
 }
 
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: InterruptStackFrame) {
