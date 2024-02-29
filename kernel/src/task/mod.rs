@@ -14,6 +14,7 @@ pub struct Task {
 
 pub mod simple_executor;
 pub mod executor;
+pub mod userspace;
 
 impl Task {
     pub fn new(future: impl Future<Output = ()> + 'static) -> Task {

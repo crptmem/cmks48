@@ -11,13 +11,10 @@ void _start(void (*symreg)(char[24], uint64_t *), uint64_t *(*getsym)(char[24]))
     * help
     */
   mprintf("acpi: acpi module v0.1 by corruptmemory  %s %s\n", __DATE__, __TIME__);
+  asm volatile(
+             "movq $0x60, %%rbx;"
+              "int $0x80" 
+              ::: "rdi", "rbx"
+            );
 
-  uint64_t *(*get_rsdp)() = getsym("get_rsdp"); 
-  uint64_t *(*get_paging)() = getsym("get_paging");
-  uint64_t *(*mmap)(uint64_t *, uint64_t *, uint64_t *) = getsym("memory_map");
-
-  uint64_t *rsdp = get_rsdp();
-  mmap(rsdp, rsdp, get_paging());
-  struct xsdp *xsdt = (struct xsdp *)get_rsdp();
-  mprintf("acpi: rsdp=0x%x, xsdt_address=0x%x, oemid=%s\n", get_rsdp(), xsdt->xsdt_address, xsdt->oemid);
 }

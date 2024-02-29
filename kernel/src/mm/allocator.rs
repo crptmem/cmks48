@@ -9,8 +9,6 @@ use x86_64::{
     VirtAddr,
 };
 
-use crate::serial_println;
-
 pub const HEAP_START: *mut u8 = 0x_1111_1111_0000 as *mut u8;
 pub const HEAP_SIZE: usize = 500 * 1024; // 100 KiB
 
@@ -71,11 +69,4 @@ impl<A> Locked<A> {
     pub fn lock(&self) -> spin::MutexGuard<A> {
         self.inner.lock()
     }
-}
-
-/// Align the given address `addr` upwards to alignment `align`.
-///
-/// Requires that `align` is a power of two.
-fn align_up(addr: usize, align: usize) -> usize {
-    (addr + align - 1) & !(align - 1)
 }

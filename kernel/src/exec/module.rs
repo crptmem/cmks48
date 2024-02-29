@@ -15,26 +15,6 @@ use core::mem::transmute;
 use core::ptr::addr_of;
 
 static mut MODULES_COUNT: usize = 0;
-static mut RSDP: u64 = 0x000000;
-static mut _PAGING: Option<&Paging> = None;
-
-fn get_rsdp() -> u64 {
-   unsafe { RSDP } 
-}
-
-fn get_paging_ptr() -> *const Paging {
-    unsafe { addr_of!(*PAGING.as_ref().unwrap()) }
-}
-
-fn mmap(from: u64, to: u64, paging: *mut Paging) {
-    unsafe { memory::create_mapping(Page::containing_address(VirtAddr::new(from)), to, &mut (*paging).mapper, &mut (*paging).frame_allocator); }
-}
-
-pub fn init() {
-    symbol_register("get_rsdp".as_bytes(), (get_rsdp as *const ()) as *mut u64);
-    symbol_register("get_paging".as_bytes(), (get_paging_ptr as *const()) as *mut u64);
-    symbol_register("memory_map".as_bytes(), (mmap as *const ()) as *mut u64);
-}
 
 fn load_elf(data: &[u8], paging: &mut Paging) {
     let file = ElfBytes::<AnyEndian>::minimal_parse(data).expect("chego blya");
@@ -43,12 +23,8 @@ fn load_elf(data: &[u8], paging: &mut Paging) {
         .filter(|phdr|{phdr.p_type == PT_LOAD})
         .collect();
 
-    unsafe {
-        RSDP = paging.rsdp_addr;
-    }
     let first_page = paging.frame_allocator.allocate_frame().unwrap();
-    //memory::create_mapping(Page::containing_address(VirtAddr::new(first_page.start_address().as_u64())), first_page.start_address().as_u64(), &mut paging.mapper, &mut paging.frame_allocator);
-    mmap(first_page.start_address().as_u64(), first_page.start_address().as_u64(), paging);
+    memory::create_mapping(Page::containing_address(VirtAddr::new(first_page.start_address().as_u64())), first_page.start_address().as_u64(), &mut paging.mapper, &mut paging.frame_allocator);
     serial_println!("mod: loading to {:#016x}", first_page.start_address().as_u64());
     for _ in 0..all_load_phdrs.len() + 10 {
         let phys = paging.frame_allocator.allocate_frame().unwrap();
@@ -68,13 +44,13 @@ fn load_elf(data: &[u8], paging: &mut Paging) {
                 VirtAddr::new(first_page.start_address().as_u64() + (0x1000 * i as u64))); 
             let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
             let data_ptr: *const u64 = data.as_ptr() as *const u64;
-            /*serial_println!("mod: {} section copying {:#08x} ({}) bytes from {:?}-{:?} to {:?}",
+            serial_println!("mod: {} section copying {:#08x} ({}) bytes from {:?}-{:?} to {:?}",
                 i,
                 all_load_phdrs[i].p_filesz,
                 all_load_phdrs[i].p_filesz,
                 data_ptr.offset((all_load_phdrs[i].p_offset / 8) as isize),
                 data_ptr.offset((all_load_phdrs[i].p_offset + all_load_phdrs[i].p_filesz) as isize),
-                page_ptr);*/
+                page_ptr);
             page_ptr.copy_from(data_ptr.offset((all_load_phdrs[i].p_offset / 8) as isize) as *const u64, (all_load_phdrs[i].p_filesz) as usize);
         }
     }

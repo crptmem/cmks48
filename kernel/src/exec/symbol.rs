@@ -1,7 +1,6 @@
 extern crate alloc;
 use crate::serial_println;
 use alloc::vec::Vec;
-use core::ascii::Char;
 
 #[derive(Debug)]
 struct Symbol {

@@ -1,8 +1,11 @@
+use core::ptr::addr_of;
+
 use lazy_static::lazy_static;
-use core::arch::asm;
+use x86_64::instructions::segmentation::load_ds;
+use x86_64::registers::segmentation::{Segment, DS};
 use x86_64::structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector};
 use x86_64::structures::tss::TaskStateSegment;
-use x86_64::VirtAddr;
+use x86_64::{PrivilegeLevel, VirtAddr};
 
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
@@ -13,7 +16,7 @@ lazy_static! {
             const STACK_SIZE: usize = 4096 * 5;
             static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 
-            let stack_start = VirtAddr::from_ptr(unsafe { &STACK });
+            let stack_start = VirtAddr::from_ptr(unsafe { addr_of!(STACK) });
             let stack_end = stack_start + STACK_SIZE;
             stack_end
         };
@@ -47,11 +50,20 @@ struct Selectors {
     user_code: SegmentSelector
 }
 
+#[inline(always)]
+pub unsafe fn set_usermode_segs() -> (u16, u16) {
+    // set ds and tss, return cs and ds
+    let (mut cs, mut ds) = (GDT.1.user_code, GDT.1.user_data);
+    cs.0 |= PrivilegeLevel::Ring3 as u16;
+    ds.0 |= PrivilegeLevel::Ring3 as u16;
+    DS::set_reg(ds);
+    (cs.0, ds.0)
+}
 
 pub fn init() {
     use x86_64::instructions::segmentation::{Segment, CS};
     use x86_64::instructions::tables::load_tss;
-        
+    
     GDT.0.load();
     unsafe {
         CS::set_reg(GDT.1.code_selector);

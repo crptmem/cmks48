@@ -1,14 +1,13 @@
 extern crate lazy_static;
 extern crate alloc;
 
-use crate::exec::module;
 use crate::init::ramdisk::{self};
-use crate::{mm, serial_println, FRAMEBUFFER, FRAME_ALLOCATOR};
+use crate::task::userspace;
+use crate::{mm, serial_println};
 use crate::common::x86::{gdt, idt, memory};
 use bootloader_api::info::MemoryRegions;
 use x86_64::structures::paging::FrameAllocator;
 use x86_64::{structures::paging::OffsetPageTable, VirtAddr, registers::control::Cr3, structures::paging::Page};
-use spin::Mutex;
 
 #[derive(Debug)]
 pub struct Paging {
@@ -33,17 +32,9 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
      
     gdt::init();    
     idt::init();
+    unsafe { userspace::init_syscalls(); }
     unsafe { idt::PICS.lock().initialize() };
     x86_64::instructions::interrupts::enable();
-    module::init();
-
-    let rsdp_page = frame_allocator.allocate_frame().unwrap();
-    memory::create_mapping(Page::containing_address(VirtAddr::new(rsdp_page.start_address().as_u64())), rsdp_addr, &mut mapper, &mut frame_allocator);
-
-    for i in 1..10 {
-        let phys = frame_allocator.allocate_frame().unwrap();
-        memory::create_mapping(Page::containing_address(VirtAddr::new(phys.start_address().as_u64())), rsdp_addr + i * 0x1000, &mut mapper, &mut frame_allocator);
-    }
 
     let paging = Paging {
         mapper,
@@ -53,10 +44,11 @@ pub fn kernel_init(boot_info: &'static mut bootloader_api::BootInfo) {
     };
 
     unsafe { PAGING = Some(paging); }
-
+    unsafe {
+        x86_64::instructions::port::PortWrite::write_to_port(0xb2, 0xffu8);
+    }
     serial_println!("init: ramdisk addr is {:#016x}", ramdisk_addr);
     serial_println!("init: cr3={:?}", Cr3::read());
     serial_println!("init: rsdp_addr={:#016x}", rsdp_addr);
-
     unsafe { ramdisk::init(*ramdisk_addr, ramdisk_size, &mut PAGING.as_mut().unwrap()); }
 }

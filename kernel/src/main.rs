@@ -3,12 +3,13 @@
 #![feature(abi_x86_interrupt)]
 #![feature(slice_pattern)]
 #![feature(ascii_char)]
+#![feature(asm_const)]
 extern crate lazy_static;
 
-use core::{borrow::Borrow, panic::PanicInfo};
+use core::panic::PanicInfo;
 use bootloader_api::config::Mapping;
 use common::x86::memory::BootInfoFrameAllocator;
-use x86_64::{structures::paging::OffsetPageTable, VirtAddr};
+use x86_64::structures::paging::OffsetPageTable;
 use crate::common::x86::serial;
 
 pub mod common;

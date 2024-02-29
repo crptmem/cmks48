@@ -1,19 +1,8 @@
 extern crate alloc;
 
-use elf::endian::AnyEndian;
-use elf::ElfBytes;
-use elf::abi::PT_LOAD;
-use elf::segment::ProgramHeader;
-use alloc::vec::Vec;
-use x86_64::VirtAddr;
-use x86_64::structures::paging::{FrameAllocator, Page};
 use crate::init::init::Paging;
-use crate::common::x86::memory;
-use crate::{serial_println, FRAME_ALLOCATOR, MAPPER};
-use crate::exec::symbol::symbol_register;
-use core::mem::transmute;
 
-pub fn load_elf(data: &[u8], paging: &mut Paging) {/*
+pub fn load_elf(_data: &[u8], _paging: &mut Paging) {/*
     let file = ElfBytes::<AnyEndian>::minimal_parse(data).expect("chego blya");
     let all_load_phdrs: Vec<ProgramHeader> = file.segments().unwrap()
         .iter()

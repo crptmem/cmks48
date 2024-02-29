@@ -1,9 +1,8 @@
 extern crate alloc;
-use core::ptr::{self, addr_of};
 use core::slice::SlicePattern;
 use alloc::vec::Vec;
 use crate::exec::module;
-use crate::serial_println;
+use core::ptr;
 
 use super::init::Paging;
 
