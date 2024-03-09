@@ -1,11 +1,11 @@
-use crate::common::x86::gdt;
-use x86_64::{registers::control::Cr3, structures::idt::PageFaultErrorCode};
+use crate::common::x86::{gdt, memory::MEMORY_INFO};
+use x86_64::{registers::control::{Cr3, Cr3Flags}, structures::{idt::PageFaultErrorCode, paging::PhysFrame}, PhysAddr};
 use lazy_static::lazy_static;
 use pic8259::ChainedPics;
 use spin;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 use crate::{serial_println, serial_print};
-use core::{arch::asm, u32};
+use core::arch::asm;
 pub const PIC_1_OFFSET: u8 = 32;
 pub const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
 
@@ -51,20 +51,27 @@ lazy_static! {
 }
 
 pub fn init() {
+    unsafe {
+        PICS.lock().write_masks(InterruptIndex::Timer.as_u8(), InterruptIndex::Timer.as_u8());
+    }
     IDT.load();
 }
 
 extern "x86-interrupt" fn lpt1(_stack_frame: InterruptStackFrame) {
+    // TODO detect and handle spurious irq
     serial_println!("lpt1");
 }
 
 extern "x86-interrupt" fn syscall(_stack_frame: InterruptStackFrame) {
     let rbx: u32;
     unsafe { asm!("mov {:r}, rbx", out(reg) rbx) };
-    serial_println!("syscall: {:#016x}", rbx);
+    serial_println!("syscall! {:#016x}", rbx);
     match rbx {
         0x00 => {
             serial_println!("exiting...");
+            unsafe {
+                Cr3::write(PhysFrame::containing_address(PhysAddr::new(0x2000)), Cr3Flags::empty());
+            }
         },
         1u32..u32::MAX => {},
         u32::MAX => {},
@@ -107,7 +114,6 @@ extern "x86-interrupt" fn general_protection_fault_handler(
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
-    serial_print!(".");
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Timer.as_u8());
